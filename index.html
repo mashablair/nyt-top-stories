@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A script that gets a random quote by Ron Swanson.">
+  <title>Top Stories from NYT API</title>
+
+  <style type="text/css">
+    body {
+      margin: 1em auto;
+      max-width: 40em;
+      width: 88%;
+    }
+
+    li {
+      list-style: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Top Stories from New York Times</h1>
+
+  <div id="app"></div>
+
+
+  <script crossorigin="anonymous" src="https://polyfill.io/v3/polyfill.min.js?features=default%2CPromise%2Cfetch"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var app = document.querySelector('#app');
+
+      fetch('https://api.nytimes.com/svc/topstories/v2/science.json?api-key=W4nwEmYiJ4AnXBvwTdPXsKtcfjR3AR1T')
+        .then(function (response) {
+          // The API call was successful!
+          if (response.ok) {
+            return response.json();
+          } else {
+            return Promise.reject(response);
+          }
+        }).then(function (data) {
+          // This is the JSON from our response
+          console.log(data);
+
+          if (data.results.length > 0 || !data.results) {
+            var articles = '<ul>' + data.results.map(function (item) {
+              return `<li>
+                      <div>
+                        <h2>${item.title}</h2>
+                        <div><a href="${item.url}">Link to article</a></div>
+                        <div>Author: ${item.byline}</div>
+                      </div>
+                    </li>`
+            }).join('') + '</ul>';
+
+            app.innerHTML = articles;
+          } else {
+            app.innerHTML = '<p><em>Sorry, no top NYT articles at this time.</em></p>';
+          }
+
+        }).catch(function (err) {
+          // There was an error
+          console.warn('Something went wrong.', err);
+          app.textContent = "[Sorry, something went wrong! But here is a joke for you anyway 😜] I believe luck is a concept invented by the weak to explain their failures."
+
+        });
+
+
+    })();
+  </script>
+</body>
+
+</html>
