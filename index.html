@@ -36,103 +36,71 @@
       "use strict";
 
       var app = document.querySelector('#app'),
-        apiKey = "W4nwEmYiJ4AnXBvwTdPXsKtcfjR3AR1T";
+        apiKey = "W4nwEmYiJ4AnXBvwTdPXsKtcfjR3AR1T",
+        categories = ["health", "technology", "fashion", "science", "food"];
 
-      var home = fetch('https://api.nytimes.com/svc/topstories/v2/home.json?api-key=' + apiKey).then(function (response) {
-        // The API call was successful!
-        if (response.ok) {
-          return response.json();
-        } else {
-          return Promise.reject(response);
-        }
-      });
-      var technology = fetch('https://api.nytimes.com/svc/topstories/v2/technology.json?api-key=' + apiKey).then(function (response) {
-        // The API call was successful!
-        if (response.ok) {
-          return response.json();
-        } else {
-          return Promise.reject(response);
-        }
-      });
-      var fashion = fetch('https://api.nytimes.com/svc/topstories/v2/fashion.json?api-key=' + apiKey).then(function (response) {
-        // The API call was successful!
-        if (response.ok) {
-          return response.json();
-        } else {
-          return Promise.reject(response);
-        }
-      });
-      var science = fetch('https://api.nytimes.com/svc/topstories/v2/science.json?api-key=' + apiKey).then(function (response) {
-        // The API call was successful!
-        if (response.ok) {
-          return response.json();
-        } else {
-          return Promise.reject(response);
-        }
-      });
-      var food = fetch('https://api.nytimes.com/svc/topstories/v2/food.json?api-key=' + apiKey).then(function (response) {
-        // The API call was successful!
-        if (response.ok) {
-          return response.json();
-        } else {
-          return Promise.reject(response);
-        }
-      });
-      var combinedData = {
-        "home": {},
-        "technology": {},
-        "fashion": {},
-        "science": {},
-        "food": {}
-      };
-      Promise.all([home, technology, fashion, science, food]).then(function (values) {
-        combinedData["home"] = values[0];
-        combinedData["technology"] = values[1];
-        combinedData["fashion"] = values[2];
-        combinedData["science"] = values[3];
-        combinedData["food"] = values[4];
-        return combinedData;
-      }).then(function (data) {
-        // This is the JSON from our response
-        console.log(data);
+      Promise.all(createFetchRequests(categories))
 
-        // Modify and Render articles from data into the DOM
-        render(data)
+        .then(function (data) {
+          // This is the JSON from our response
+          console.log(data);
 
-      }).catch(function (err) {
-        // There was an error
-        console.warn('Something went wrong.', err);
-        app.textContent = "[Sorry, something went wrong! But here is a joke for you anyway 😜] I believe luck is a concept invented by the weak to explain their failures. -Ron Swanson"
-      });
+          // Modify and Render articles from data into the DOM
+          render(data)
+
+        }).catch(function (err) {
+          // There was an error
+          console.warn('Something went wrong.', err);
+          app.textContent = "[Sorry, something went wrong! But here is a joke for you anyway 😜] I believe luck is a concept invented by the weak to explain their failures. -Ron Swanson"
+        });
 
       /**
        * Render articles into the DOM
-       * @param {Object} articles The object of categories objects to render where each category has array of articles (e.g. home.results = [])
+       * @param {Array} categories The array of categories chosen
+       */
+      function createFetchRequests(categories) {
+        var requests_array = [];
+        categories.forEach(function (item) {
+          var request = fetch(`https://api.nytimes.com/svc/topstories/v2/${item}.json?api-key=${apiKey}`).then(function (response) {
+            if (response.ok) {
+              return response.json();
+            } else {
+              return Promise.reject(response);
+            }
+          });
+          return requests_array.push(request);
+        })
+        console.log(requests_array)
+        return requests_array;
+      }
+
+
+      /**
+       * Render articles into the DOM
+       * @param {Array} articles The array of categories to render where each category has array of articles (e.g. home.results = [])
        */
       var render = function (articles) {
 
-        console.log(articles)
-
         // loop through every category of articles object and get array of articles
-        for (var key in articles) {
-          if (articles.hasOwnProperty(key)) {
-            var first5 = articles[key].results.slice(0, 5);
-            console.log(first5)
+        articles.forEach(function (category) {
 
-            if (first5 && first5.length > 0) {
-              app.innerHTML += first5.map(function (item) {
-                return `<article>
-                            <h2><a href="${item.url}">${item.title}</a></h2>
-                            <div>Category: ${capitalizeFirstLetter(key)} &#8210; ${item.section}</div>
-                            <div>Author: ${item.byline}</div>
-                            <p>${item.abstract}</p>
-                          </article>`
-              }).join('');
-            } else {
-              app.innerHTML = '<p><em>Sorry, no top NYT articles at this time.</em></p>';
-            }
+          var first5 = category.results.slice(0, 5);
+
+          if (first5 && first5.length > 0) {
+            var count = 1;
+            app.innerHTML += first5.map(function (item) {
+              return `<article>
+                        <h2><a href="${item.url}">${item.title}</a></h2>
+                        <div>Count: ${count++}</div>
+                        <div>Category: ${capitalizeFirstLetter(category.section)} (<em>Subsection: ${item.section}</em>)</div>
+                        <div>Author: ${item.byline}</div>
+                        <p>${item.abstract}</p>
+                      </article>`
+            }).join('');
+          } else {
+            app.innerHTML = '<p><em>Sorry, no top NYT articles at this time.</em></p>';
           }
-        }
+        })
       }
 
       // Helper function 
