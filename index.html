@@ -34,6 +34,26 @@
 
       var app = document.querySelector('#app');
 
+      /**
+       * Render articles into the DOM
+       * @param {Array} articles The articles to render
+       */
+      var render = function (articles) {
+        if (articles.length > 0 || !articles) {
+          app.innerHTML = articles.map(function (item) {
+            return `<article>
+                      <h2><a href="${item.url}">${item.title}</a></h2>
+                      <div>Author: ${item.byline}</div>
+                      <p>${item.abstract}</p>
+                    </article>`
+          }).join('');
+
+        } else {
+          app.innerHTML = '<p><em>Sorry, no top NYT articles at this time.</em></p>';
+        }
+      }
+
+      // Get articles
       fetch('https://api.nytimes.com/svc/topstories/v2/science.json?api-key=W4nwEmYiJ4AnXBvwTdPXsKtcfjR3AR1T')
         .then(function (response) {
           // The API call was successful!
@@ -46,26 +66,13 @@
           // This is the JSON from our response
           console.log(data);
 
-          if (data.results.length > 0 || !data.results) {
-            var articles = '<ul>' + data.results.map(function (item) {
-              return `<li>
-                      <div>
-                        <h2>${item.title}</h2>
-                        <div><a href="${item.url}">Link to article</a></div>
-                        <div>Author: ${item.byline}</div>
-                      </div>
-                    </li>`
-            }).join('') + '</ul>';
-
-            app.innerHTML = articles;
-          } else {
-            app.innerHTML = '<p><em>Sorry, no top NYT articles at this time.</em></p>';
-          }
+          // Render articles from data into the DOM
+          render(data.results)
 
         }).catch(function (err) {
           // There was an error
           console.warn('Something went wrong.', err);
-          app.textContent = "[Sorry, something went wrong! But here is a joke for you anyway 😜] I believe luck is a concept invented by the weak to explain their failures."
+          app.textContent = "[Sorry, something went wrong! But here is a joke for you anyway 😜] I believe luck is a concept invented by the weak to explain their failures. -Ron Swanson"
 
         });
 
