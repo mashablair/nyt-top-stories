@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="A script that gets a random quote by Ron Swanson.">
+  <meta name="description" content="API description is here: https://developer.nytimes.com/docs/top-stories-product/1/routes/%7Bsection%7D.json/get">
   <title>Top Stories from NYT API</title>
 
   <style type="text/css">
@@ -24,6 +25,8 @@
 
   <h1>Top Stories from New York Times</h1>
 
+  <a href="https://developer.nytimes.com/docs/top-stories-product/1/routes/%7Bsection%7D.json/get">Source</a>
+
   <div id="app"></div>
 
 
@@ -32,50 +35,110 @@
     (function () {
       "use strict";
 
-      var app = document.querySelector('#app');
+      var app = document.querySelector('#app'),
+        apiKey = "W4nwEmYiJ4AnXBvwTdPXsKtcfjR3AR1T";
+
+      var home = fetch('https://api.nytimes.com/svc/topstories/v2/home.json?api-key=' + apiKey).then(function (response) {
+        // The API call was successful!
+        if (response.ok) {
+          return response.json();
+        } else {
+          return Promise.reject(response);
+        }
+      });
+      var technology = fetch('https://api.nytimes.com/svc/topstories/v2/technology.json?api-key=' + apiKey).then(function (response) {
+        // The API call was successful!
+        if (response.ok) {
+          return response.json();
+        } else {
+          return Promise.reject(response);
+        }
+      });
+      var fashion = fetch('https://api.nytimes.com/svc/topstories/v2/fashion.json?api-key=' + apiKey).then(function (response) {
+        // The API call was successful!
+        if (response.ok) {
+          return response.json();
+        } else {
+          return Promise.reject(response);
+        }
+      });
+      var science = fetch('https://api.nytimes.com/svc/topstories/v2/science.json?api-key=' + apiKey).then(function (response) {
+        // The API call was successful!
+        if (response.ok) {
+          return response.json();
+        } else {
+          return Promise.reject(response);
+        }
+      });
+      var food = fetch('https://api.nytimes.com/svc/topstories/v2/food.json?api-key=' + apiKey).then(function (response) {
+        // The API call was successful!
+        if (response.ok) {
+          return response.json();
+        } else {
+          return Promise.reject(response);
+        }
+      });
+      var combinedData = {
+        "home": {},
+        "technology": {},
+        "fashion": {},
+        "science": {},
+        "food": {}
+      };
+      Promise.all([home, technology, fashion, science, food]).then(function (values) {
+        combinedData["home"] = values[0];
+        combinedData["technology"] = values[1];
+        combinedData["fashion"] = values[2];
+        combinedData["science"] = values[3];
+        combinedData["food"] = values[4];
+        return combinedData;
+      }).then(function (data) {
+        // This is the JSON from our response
+        console.log(data);
+
+        // Modify and Render articles from data into the DOM
+        render(data)
+
+      }).catch(function (err) {
+        // There was an error
+        console.warn('Something went wrong.', err);
+        app.textContent = "[Sorry, something went wrong! But here is a joke for you anyway 😜] I believe luck is a concept invented by the weak to explain their failures. -Ron Swanson"
+      });
 
       /**
        * Render articles into the DOM
-       * @param {Array} articles The articles to render
+       * @param {Object} articles The object of categories objects to render where each category has array of articles (e.g. home.results = [])
        */
       var render = function (articles) {
-        if (articles.length > 0 || !articles) {
-          app.innerHTML = articles.map(function (item) {
-            return `<article>
-                      <h2><a href="${item.url}">${item.title}</a></h2>
-                      <div>Author: ${item.byline}</div>
-                      <p>${item.abstract}</p>
-                    </article>`
-          }).join('');
 
-        } else {
-          app.innerHTML = '<p><em>Sorry, no top NYT articles at this time.</em></p>';
+        console.log(articles)
+
+        // loop through every category of articles object and get array of articles
+        for (var key in articles) {
+          if (articles.hasOwnProperty(key)) {
+            var first5 = articles[key].results.slice(0, 5);
+            console.log(first5)
+
+            if (first5 && first5.length > 0) {
+              app.innerHTML += first5.map(function (item) {
+                return `<article>
+                            <h2><a href="${item.url}">${item.title}</a></h2>
+                            <div>Category: ${capitalizeFirstLetter(key)} &#8210; ${item.section}</div>
+                            <div>Author: ${item.byline}</div>
+                            <p>${item.abstract}</p>
+                          </article>`
+              }).join('');
+            } else {
+              app.innerHTML = '<p><em>Sorry, no top NYT articles at this time.</em></p>';
+            }
+          }
         }
       }
 
-      // Get articles
-      fetch('https://api.nytimes.com/svc/topstories/v2/science.json?api-key=W4nwEmYiJ4AnXBvwTdPXsKtcfjR3AR1T')
-        .then(function (response) {
-          // The API call was successful!
-          if (response.ok) {
-            return response.json();
-          } else {
-            return Promise.reject(response);
-          }
-        }).then(function (data) {
-          // This is the JSON from our response
-          console.log(data);
-
-          // Render articles from data into the DOM
-          render(data.results)
-
-        }).catch(function (err) {
-          // There was an error
-          console.warn('Something went wrong.', err);
-          app.textContent = "[Sorry, something went wrong! But here is a joke for you anyway 😜] I believe luck is a concept invented by the weak to explain their failures. -Ron Swanson"
-
-        });
-
+      // Helper function 
+      function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      }
 
     })();
   </script>
